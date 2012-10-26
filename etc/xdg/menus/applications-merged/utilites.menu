@@ -1,0 +1,16 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN" "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+<Menu>
+    <Layout>
+        <Merge type="menus" />
+        <Menuname>Utilities</Menuname>
+    </Layout>
+    <Menu>
+        <Name>Utilities</Name>
+        <Directory>utilities.directory</Directory>
+        <Include>
+            <And>
+                <Category>X-CVL-UTILITIES</Category>
+            </And>
+        </Include>
+    </Menu>
+</Menu>

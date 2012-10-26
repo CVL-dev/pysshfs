@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Comment=pysshfs
+Exec=/opt/pysshfs/bin/pysshfs
+GenericName=
+Icon=/opt/pysshfs/share/pysshfs.png
+Name=pysshfs-0.1
+Path=/opt/pysshfs/bin
+StartupNotify=true
+Categories=X-CVL-UTILITIES
+Terminal=0
