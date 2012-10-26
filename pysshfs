@@ -10,6 +10,8 @@
 #   Autofill + ssh-bind mount changes by Anil Gulecha
 #      http://www.gulecha.org
 #
+#   Basic RPM packaging and tweaking mount options by Carlo Hamalainen <carlo.hamalainen@gmail.com>
+#
 #   This program is distributed under the terms of the GNU General Public License
 #   For more info see http://www.gnu.org/licenses/gpl.txt
 ##
@@ -20,6 +22,8 @@ import gtk
 
 ## print debug info ( True / False )
 DEBUG = False
+
+SSHFS_OPTIONS = 'idmap=user,ServerAliveInterval=10,ServerAliveCountMax=5'
 
 class UI:
     def __init__(self):
@@ -236,7 +240,7 @@ class sshFs:
 
     def mount(self, User="", Password="", Host="", Dir="", Mountpoint="", Port=22, Timeout=120):
 
-        Command = "sshfs -p %s %s@%s:%s %s" % (Port, User, Host, Dir, Mountpoint)
+        Command = "sshfs -p %s %s@%s:%s %s -o %s" % (Port, User, Host, Dir, Mountpoint, SSHFS_OPTIONS)
         debug_info("Command : %s" % Command)
 
         child = pexpect.spawn(Command)
