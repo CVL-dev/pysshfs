@@ -8,7 +8,7 @@
 Summary: pysshfs
 Name: pysshfs
 Version: 0.1
-Release: 0
+Release: 1
 License: GPL
 Group: misc
 SOURCE0 : %{name}-%{version}.tar.gz
@@ -43,7 +43,13 @@ rm -rf %{buildroot}
 # %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 #%{_bindir}/*
 /opt/*
+/etc/*
+/usr/*
 
 %changelog
 * Fri Oct 26 2012 Initial version.
 - Initial version.
+
+* Fri Oct 26 2012 Menu fix.
+- Fixed paths for menu files.
+

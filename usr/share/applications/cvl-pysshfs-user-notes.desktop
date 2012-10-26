@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Comment=Notes on using pysshfs
+Exec=/usr/bin/firefox https://confluence-vre.its.monash.edu.au/display/CVL/Using+pysshfs
+GenericName=
+Icon=
+Name=pysshfs-0.1 notes
+StartupNotify=true
+Categories=X-CVL-UTILITIES
+Terminal=0

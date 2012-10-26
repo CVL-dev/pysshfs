@@ -14,15 +14,16 @@ rm -f ~/.rpmmacros
 echo "%_topdir  "`pwd`     >> ~/.rpmmacros
 echo "%_tmppath "`pwd`/tmp >> ~/.rpmmacros
 
-rm -fr   pysshfs-${VERSION}
+rm -fr   pysshfs-${VERSION} pysshfs-${VERSION}.tar.gz 
+
 mkdir -p pysshfs-${VERSION}/opt/pysshfs/bin
 mkdir -p pysshfs-${VERSION}/opt/pysshfs/share
-mkdir -p pysshfs-${VERSION}/opt/pysshfs/etc
-mkdir -p pysshfs-${VERSION}/opt/pysshfs/usr
+mkdir -p pysshfs-${VERSION}/etc
+mkdir -p pysshfs-${VERSION}/usr
 
 # Menu items:
-cp -r ../etc/*      pysshfs-${VERSION}/opt/pysshfs/etc/
-cp -r ../usr/*      pysshfs-${VERSION}/opt/pysshfs/usr/
+cp -r ../etc/*      pysshfs-${VERSION}/etc/
+cp -r ../usr/*      pysshfs-${VERSION}/usr/
 
 # Python script:
 cp ../pysshfs       pysshfs-${VERSION}/opt/pysshfs/bin
