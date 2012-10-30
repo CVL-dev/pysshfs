@@ -16,32 +16,83 @@
 #   For more info see http://www.gnu.org/licenses/gpl.txt
 ##
 
+from optparse import OptionParser
 import pexpect
 import os
 import gtk
+import sys
 
 ## print debug info ( True / False )
 DEBUG = False
 
 SSHFS_OPTIONS = 'idmap=user,ServerAliveInterval=10,ServerAliveCountMax=5'
 
+defaults = None
+
+# Currently we can't get this list without authenticating to Karaage at VPAC so here is
+# static list of MASSIVE projects:
+MASSIVE_PROJECTS = ['ASync001','ASync002','ASync003','ASync004','ASync005','ASync006',
+                    'ASync007','ASync008','ASync009','ASync010','ASync011',
+
+                    'CSIRO001','CSIRO002','CSIRO003','CSIRO004','CSIRO005','CSIRO006',
+                    'CSIRO007',
+
+                    'Desc001','Desc002','Desc003','Desc004',
+
+                    'Monash001','Monash002','Monash003','Monash004',
+                    'Monash005','Monash006','Monash007','Monash008',
+                    'Monash009','Monash010','Monash011','Monash012','Monash013',
+                    'Monash014','Monash015','Monash016','Monash017','Monash018',
+                    'Monash019','Monash020','Monash021','Monash022','Monash023',
+                    'Monash024','Monash025','Monash026','Monash027','Monash028',
+                    'Monash029','Monash030','Monash031','Monash032','Monash033',
+                    'Monash034','Monash035','Monash036',
+
+                    'NCId75','NCIdb5','NCIdc0','NCIdd2','NCIg61','NCIg75',
+                    'NCIq97','NCIr14','NCIw25','NCIw27','NCIw67','NCIw81','NCIw91',
+                    'NCIy40','NCIy95','NCIy96',
+
+                    'pDeak0023','pDeak0024','pDeak0026',
+
+                    'pLaTr0011',
+
+                    'pMelb0095','pMelb0100','pMelb0103','pMelb0104',
+
+                    'pMOSP',
+
+                    'pRMIT0074','pRMIT0078','pRMIT0083',
+
+                    'pVPAC0005',
+
+                    'Training',]
+
 class UI:
+    def massive_project_cb_changed(self, combobox):
+        model = combobox.get_model()
+        index = combobox.get_active()
+        if index:
+            self.Dir_entry.set_text('/home/projects/%s' % model[index][0])
+            self.Mountpoint_entry.set_text('%s' % model[index][0])
+        return
+
     def __init__(self):
         # Create window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Mount sshFS")
         self.window.set_position(gtk.WIN_POS_CENTER)
         self.window.connect("destroy", self.quit)
+        self.window.set_default_size(320, 60)
+
 
         self.af = autofill();
-        (a_user, a_host, a_dir, a_mntpnt, a_port, a_open) = self.af.get_fill()
+        (a_user, a_host, a_massive_project, a_dir, a_mntpnt, a_port, a_open) = self.af.get_fill()
         # Containers
         BoxBase = gtk.VBox()
         #~ BoxBase.set_spacing(5)
         BoxBase.set_border_width(5)
 
         BoxMain = gtk.HBox()
-        BoxMain.set_spacing(5)
+        BoxMain.set_spacing(6)
         BoxMain.set_border_width(5)
 
         BoxControls = gtk.HButtonBox()
@@ -54,7 +105,7 @@ class UI:
         BoxControls.pack_end(button_exit, False, False)
 
         table = gtk.Table()
-        table.set_row_spacings(5)
+        table.set_row_spacings(6)
         table.set_col_spacings(5)
 
         ## Label
@@ -87,29 +138,41 @@ class UI:
         table.attach(label, 0, 1, 3, 4)
         table.attach(self.Host_entry, 1, 2, 3, 4)
 
+        ## Massive project entry
+        self.MassiveProject_entry = gtk.combo_box_new_text()
+        self.MassiveProject_entry.connect('changed', self.massive_project_cb_changed)
+        for x in MASSIVE_PROJECTS:
+            self.MassiveProject_entry.append_text(x)
+
+        label = gtk.Label('MassiveProject :')
+        # self.MassiveProject_entry.set_text(a_massive_project)
+        label.set_alignment(0, 1)
+        table.attach(label, 0, 1, 4, 5)
+        table.attach(self.MassiveProject_entry, 1, 2, 4, 5)
+
         ## Dir
         self.Dir_entry = gtk.Entry()
         label = gtk.Label('Dir :')
         self.Dir_entry.set_text(a_dir)
         label.set_alignment(0, 1)
-        table.attach(label, 0, 1, 4, 5)
-        table.attach(self.Dir_entry, 1, 2, 4, 5)
+        table.attach(label, 0, 1, 5, 6)
+        table.attach(self.Dir_entry, 1, 2, 5, 6)
 
         ## Mountpoint
         self.Mountpoint_entry = gtk.Entry()
         label = gtk.Label('Mountpoint :')
         self.Mountpoint_entry.set_text(a_mntpnt)
         label.set_alignment(0, 1)
-        table.attach(label, 0, 1, 5, 6)
-        table.attach(self.Mountpoint_entry, 1, 2, 5, 6)
+        table.attach(label, 0, 1, 6, 7)
+        table.attach(self.Mountpoint_entry, 1, 2, 6, 7)
 
         ## Port
         self.Port_entry = gtk.Entry()
         label = gtk.Label('Port :')
         self.Port_entry.set_text(a_port)
         label.set_alignment(0, 1)
-        table.attach(label, 0, 1, 6, 7)
-        table.attach(self.Port_entry, 1, 2, 6, 7)
+        table.attach(label, 0, 1, 7, 8)
+        table.attach(self.Port_entry, 1, 2, 7, 8)
 
         # Open directory
         self.OpenDir_checkbox = gtk.CheckButton('Open directory')
@@ -117,37 +180,37 @@ class UI:
             self.OpenDir_checkbox.set_active(True)
         else:
             self.OpenDir_checkbox.set_active(False)
-        table.attach(self.OpenDir_checkbox, 0, 1, 7, 8)
+        table.attach(self.OpenDir_checkbox, 0, 1, 8, 9)
 
         ## Connect
         self.Connect_Bt = gtk.Button(stock=gtk.STOCK_CONNECT)
         self.Connect_Bt.connect("clicked", self.mount_sshfs)
-        table.attach(self.Connect_Bt, 1, 2, 7, 8)
+        table.attach(self.Connect_Bt, 1, 2, 8, 9)
 
         ## Separator
-        table.attach(gtk.HSeparator(), 0, 2, 8, 9)
+        table.attach(gtk.HSeparator(), 0, 2, 9, 10)
 
         ## Label
         label = gtk.Label()
         label.set_markup("<b>Existing Mountpoints</b>")
         label.set_alignment(0, 1)
-        table.attach(label, 0, 2, 9, 10)
+        table.attach(label, 0, 2, 10, 11)
 
         ## Mounted_FS
         self.Mounted_fs_combo = gtk.combo_box_new_text()
-        table.attach(self.Mounted_fs_combo, 0, 2, 10, 11)
+        table.attach(self.Mounted_fs_combo, 0, 2, 11, 12)
 
         ## Open / Umount
         self.Open_Bt = gtk.Button(stock=gtk.STOCK_OPEN)
         self.Open_Bt.connect("clicked", self.open_mountpoint)
-        table.attach(self.Open_Bt, 0, 1, 11, 12)
+        table.attach(self.Open_Bt, 0, 1, 12, 13)
 
         self.Umount_Bt = gtk.Button(stock=gtk.STOCK_DISCONNECT)
         self.Umount_Bt.connect("clicked", self.umount_sshfs)
-        table.attach(self.Umount_Bt, 1, 2, 11, 12)
+        table.attach(self.Umount_Bt, 1, 2, 12, 13)
 
         ## Separator
-        table.attach(gtk.HSeparator(), 0, 2, 12, 13)
+        table.attach(gtk.HSeparator(), 0, 2, 13, 14)
 
         BoxMain.add(table)
         BoxBase.pack_start(BoxMain, True)
@@ -308,8 +371,21 @@ class autofill:
             self.a_port = fields[4]
             self.a_open = fields[5]
 
+        # Command line parameters overwrite defaults stored in .pysshfs:
+        if defaults.user is not None:
+            self.a_user = defaults.user 
+        if defaults.host is not None:
+            self.a_host = defaults.host 
+        if defaults.remotepath is not None:
+            self.a_dir = defaults.remotepath 
+        if defaults.localpath is not None:
+            self.a_mntpnt = defaults.localpath 
+
+        # FIXME
+        self.a_massive_project = 'Desc002'
+
     def get_fill(self):
-        return (self.a_user, self.a_host, self.a_dir, self.a_mntpnt, self.a_port, self.a_open)
+        return (self.a_user, self.a_host, self.a_massive_project, self.a_dir, self.a_mntpnt, self.a_port, self.a_open)
 
     def set_fill(self, a_user, a_host, a_dir, a_mntpnt, a_port, a_open):
         f = open(os.getenv("HOME") + "/.pysshfs","w")
@@ -340,5 +416,12 @@ def debug_info(msg):
         print "# %s" % msg
 
 if __name__ == "__main__":
+    parser = OptionParser()
+    parser.add_option('--user', help='username on the remote server')
+    parser.add_option('--host', help='remote host')
+    parser.add_option('--remotepath', help='remote directory to mount')
+    parser.add_option('--localpath', help='local mount point')
+    defaults = parser.parse_args()[0]
+
     ui = UI()
     ui.run()
